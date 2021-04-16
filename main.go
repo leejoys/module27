@@ -34,7 +34,7 @@ import (
 //=========================================================================================================
 
 //logger receive log messages and write them into logStream
-func logger(log <-chan string, wg *sync.WaitGroup) {
+func logger(log <-chan string) {
 
 	//define where to write the log
 	var logStream *os.File = os.Stdout
@@ -44,7 +44,6 @@ func logger(log <-chan string, wg *sync.WaitGroup) {
 		switch in {
 		case "end of log":
 			fmt.Fprintln(logStream, in)
-			wg.Done()
 			return
 
 		default:
@@ -289,12 +288,20 @@ func receiver(wg *sync.WaitGroup, done chan int, c <-chan int) {
 func main() {
 	var wg sync.WaitGroup
 
+	//logger start
+	logChan := make(chan string)
+	go logger(logChan)
+
 	d := NewDataSrc()
 	done := make(chan int)
-	pipeline := RingBuf(&wg, done, Trine(&wg, done, Positive(&wg, done, d.C)))
+	pipeline := RingBuf(logChan, &wg, done, Trine(logChan, &wg, done, Positive(logChan, &wg, done, d.C)))
 
-	go d.ScanCmd(done)
+	go d.ScanCmd(logChan, done)
 	wg.Add(1)
-	go receiver(&wg, done, pipeline)
+	go receiver(logChan, &wg, done, pipeline)
 	wg.Wait()
+
+	//logger stop
+	logChan <- "end of log"
+	time.Sleep(time.Second / 100)
 }
