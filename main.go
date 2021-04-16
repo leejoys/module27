@@ -33,6 +33,26 @@ import (
 //консоль. Как и где их фильтровать, решайте сами.
 //=========================================================================================================
 
+//logger receive log messages and write them into logStream
+func logger(log <-chan string, wg *sync.WaitGroup) {
+
+	//define where to write the log
+	var logStream *os.File = os.Stdout
+
+	for {
+		in := <-log
+		switch in {
+		case "end of log":
+			fmt.Fprintln(logStream, in)
+			wg.Done()
+			return
+
+		default:
+			fmt.Fprintln(logStream, in)
+		}
+	}
+}
+
 //Positive Стадия фильтрации отрицательных чисел (не пропускать отрицательные числа).
 //[ ]
 func Positive(wg *sync.WaitGroup, done <-chan int, cIn <-chan int) <-chan int {
