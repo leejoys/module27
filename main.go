@@ -117,8 +117,8 @@ func RingBuf(log chan<- string, wg *sync.WaitGroup, done <-chan int, cIn <-chan 
 				log <- fmt.Sprintf("%d added to RingBuf", el)
 
 			case <-time.After(time.Second * time.Duration(ringDelay)):
-				log <- "RingBuf release"
 				for _, i := range r.Get() {
+					log <- fmt.Sprintf("RingBuf release: %d", i)
 					cOut <- i
 				}
 			}
