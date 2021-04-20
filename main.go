@@ -21,14 +21,15 @@ func logger(wg *sync.WaitGroup, log <-chan string) {
 
 	//define where to write the log
 
-	logFile, err := os.Create(fmt.Sprintf("%d.log", time.Now().Unix()))
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	defer logFile.Close()
+	//uncomment for log to file
+	// logFile, err := os.Create(fmt.Sprintf("%d.log", time.Now().Unix()))
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	os.Exit(1)
+	// }
+	// defer logFile.Close()
 
-	var logStream *os.File = logFile
+	var logStream *os.File = os.Stdout
 
 	for {
 		in := <-log
