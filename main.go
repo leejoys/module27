@@ -17,7 +17,7 @@ import (
 //=========================================================================================================
 
 //logger receive log messages and write them into logStream
-func logger(log <-chan string) {
+func logger(wg *sync.WaitGroup, log <-chan string) {
 
 	//define where to write the log
 
@@ -35,6 +35,7 @@ func logger(log <-chan string) {
 		switch in {
 		case "end of log":
 			fmt.Fprintln(logStream, in)
+			wg.Done()
 			return
 
 		default:
@@ -291,7 +292,7 @@ func main() {
 
 	//logger start
 	logChan := make(chan string)
-	go logger(logChan)
+	go logger(&wg, logChan)
 	logChan <- "program started"
 
 	d := NewDataSrc()
@@ -304,6 +305,7 @@ func main() {
 	wg.Wait()
 
 	//logger stop
+	wg.Add(1)
 	logChan <- "end of log"
-	time.Sleep(time.Second / 100)
+	wg.Wait()
 }
